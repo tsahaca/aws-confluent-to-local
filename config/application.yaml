@@ -1,1 +1,111 @@
-logging: 
+logging:
+  config: classpath:logback-spring.xml
+  level:
+    org.springframework.security: INFO
+    org.springframework.web: INFO
+    com.westerasset.protfolio: DEBUG
+  file.name: application.log
+
+topic:
+  name: my-topic-name
+#  partitions-num: 6
+#  replication-factor: 3
+server:
+  port: 9080
+
+spring:
+  application:
+    name: aws-ccloud-local-demo
+  kafka:
+    bootstrap-servers:
+      - bootstarp.aws.confluent.cloud:9092  # <1>
+    properties:
+      # CCloud broker connection parameters #
+      ssl.endpoint.identification.algorithm: https
+      sasl.mechanism: PLAIN
+      request.timeout.ms: 20000
+      retry.backoff.ms: 500
+      sasl.jaas.config: org.apache.kafka.common.security.plain.PlainLoginModule required username="ccloud_key" password="ccloud_secret";  # <2>
+      security.protocol: SASL_SSL
+
+      # CCloud Schema Registry Connection parameter
+      schema.registry.url: https://schema-registry.aws.confluent.cloud  # <3>
+      basic.auth.credentials.source: USER_INFO  # <4>
+      basic.auth.user.info: sr_ccloud_key:sr_ccloud_key # <5>
+      auto.register.schemas: false
+
+      # Tells Kafka / Schema Registry that we will be using a specific Avro type
+      # (StockQuote type in this case) otherwise Kafka will expect GenericRecord to be used on the topic.
+      specific.avro.reader: false
+
+      # Delegate deserializers
+      spring.deserializer.key.delegate.class: org.apache.kafka.common.serialization.StringDeserializer
+      spring.deserializer.value.delegate.class: io.confluent.kafka.serializers.KafkaAvroDeserializer
+
+
+    consumer:
+      group-id: my_group_id
+      # auto-offset-reset: latest
+      auto-offset-reset: earliest
+      enable-auto-commit: true
+      #      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      #      key-serializer: io.confluent.kafka.serializers.KafkaJsonDeserializer
+      #      value-deserializer: io.confluent.kafka.serializers.KafkaAvroDeserializer
+      key-deserializer: org.springframework.kafka.support.serializer.ErrorHandlingDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.ErrorHandlingDeserializer
+    #      value-deserializer: org.apache.kafka.common.serialization.ByteArrayDeserializer
+
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: io.confluent.kafka.serializers.KafkaAvroSerializer
+      client-id: ${spring.application.name}
+      properties:
+        enable.idempotence: true
+
+    # At application startup a missing topic on the broker will not fail the
+    # application startup
+    listener:
+      missing-topics-fatal: false
+    template:
+      default-topic: my-default-topic
+
+  #kafka-local
+  kafka-local:
+    bootstrap-servers:
+      - localhost:9092
+    properties:
+      request.timeout.ms: 20000
+      retry.backoff.ms: 500
+      schema.registry.url: http://localhost:8081
+      auto.register.schemas: true
+      # Tells Kafka / Schema Registry that we will be using a specific Avro type
+      # (StockQuote type in this case) otherwise Kafka will expect GenericRecord to be used on the topic.
+      specific.avro.reader: true
+
+    consumer:
+      group-id: my_group_id
+      auto-offset-reset: latest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: io.confluent.kafka.serializers.KafkaAvroDeserializer
+      enable-auto-commit: true
+
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      #      key-serializer: io.confluent.kafka.serializers.KafkaJsonSerializer
+      value-serializer: io.confluent.kafka.serializers.KafkaAvroSerializer
+      client-id: ${spring.application.name}
+      properties:
+        enable.idempotence: true
+
+    # At application startup a missing topic on the broker will not fail the
+    # application startup
+    listener:
+      missing-topics-fatal: false
+    template:
+      default-topic: my-default-topic
+
+#logging:
+#  level:
+#    root: info
+application:
+  aws-source: my-aws-source-topic
