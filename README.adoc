@@ -1,0 +1,40 @@
+= Spring Boot AWS Confluent Cloud to Local Kafka
+
+== Introduction
+[NOTE]
+====
+This is a Spring Boot Application to copy data from AWS Confluent Cloud to Local Kafka Cluster
+====
+
+== Project Setup
+====
+. Clone the repo
+. mvn clean package
+. Modify config/application.yaml for your AWS Confluent Cloud endpoints and Local Kafka endpoints
+. Execute ./rub.bat or ./run.sh
+====
+
+== Endpoints and commands
+[cols="50,50"]
+|===
+|h2 DB Console
+|http://localhost:8080/my-cool-db
+
+|List All Employees
+|http://localhost:8080/employees
+
+|csv -> table
+|CREATE TABLE USERS AS SELECT * FROM CSVREAD('users-data.csv');
+
+
+|table -> csv
+|CALL CSVWRITE('users-data.csv',
+'select
+p.firstName,
+p.lastName,
+p.email
+from USERS p',
+'charset=UTF-8 fieldSeparator=, fieldDelimiter=');
+|===
+
+
